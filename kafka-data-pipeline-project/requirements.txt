@@ -1,0 +1,32 @@
+# Kafka Data Pipeline Project - Dependencies
+# Install karne ke liye: pip install -r requirements.txt
+
+# Confluent Kafka - Python client for Apache Kafka
+confluent-kafka==2.3.0
+
+# JSON handling (built-in, but listing for clarity)
+# json - Python mein already available hai
+
+# Data generation and manipulation
+faker==20.1.0              # Fake data generate karne ke liye (names, addresses, etc.)
+
+# HTTP requests (for Druid integration)
+requests==2.31.0           # API calls ke liye
+
+# Data handling
+pandas==2.1.4              # Data manipulation (optional, for advanced tasks)
+
+# Logging and monitoring
+python-json-logger==2.0.7  # Better logging format
+
+# Configuration management
+python-dotenv==1.0.0       # Environment variables manage karne ke liye
+
+# Date and time handling
+python-dateutil==2.8.2     # Date/time utilities
+
+# Optional: For Druid integration
+pydruid==0.6.5             # Druid Python client (optional)
+
+# Optional: For data validation
+jsonschema==4.20.0         # JSON validation

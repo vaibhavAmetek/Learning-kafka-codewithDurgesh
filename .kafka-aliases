@@ -1,0 +1,218 @@
+#!/bin/zsh
+# ============================================
+# Kafka Command Aliases - Complete Reference
+# ============================================
+# Location: ~/learningProjects/Learning-kafka-codewithDurgesh/.kafka-aliases
+# Usage: Source this file in your .zshrc
+# Created: Nov 27, 2025
+# ============================================
+
+# Kafka Bootstrap Server (Conduktor Local Docker)
+export KAFKA_SERVER="localhost:19092"
+
+# ============================================
+# TOPIC MANAGEMENT (File 16: Kafka Topics CLI)
+# ============================================
+
+# List topics
+alias kt-list='kafka-topics --bootstrap-server $KAFKA_SERVER --list'
+alias kt-list-exclude='kafka-topics --bootstrap-server $KAFKA_SERVER --list --exclude-internal'
+
+# Create topic
+alias kt-create='kafka-topics --bootstrap-server $KAFKA_SERVER --create'
+# Usage: kt-create --topic my-topic --partitions 3
+
+# Describe topic
+alias kt-describe='kafka-topics --bootstrap-server $KAFKA_SERVER --describe'
+# Usage: kt-describe --topic my-topic
+
+# Delete topic
+alias kt-delete='kafka-topics --bootstrap-server $KAFKA_SERVER --delete'
+# Usage: kt-delete --topic my-topic
+
+# Alter topic (change partitions)
+alias kt-alter='kafka-topics --bootstrap-server $KAFKA_SERVER --alter'
+# Usage: kt-alter --topic my-topic --partitions 5
+
+# Quick create with defaults (3 partitions)
+alias kt-quick='kafka-topics --bootstrap-server $KAFKA_SERVER --create --partitions 3 --replication-factor 1'
+# Usage: kt-quick --topic my-topic
+
+# ============================================
+# PRODUCER (File 17: Kafka Console Producer CLI)
+# ============================================
+
+# Basic producer (no keys)
+alias kp='kafka-console-producer --bootstrap-server $KAFKA_SERVER'
+# Usage: kp --topic my-topic
+
+# Producer with acks=all (safe mode)
+alias kp-safe='kafka-console-producer --bootstrap-server $KAFKA_SERVER --producer-property acks=all'
+# Usage: kp-safe --topic my-topic
+
+# Producer with keys (key:value format)
+alias kp-key='kafka-console-producer --bootstrap-server $KAFKA_SERVER --property parse.key=true --property key.separator=:'
+# Usage: kp-key --topic my-topic
+# Then type: key:value
+
+# Producer with round-robin partitioner (for testing)
+alias kp-rr='kafka-console-producer --bootstrap-server $KAFKA_SERVER --producer-property partitioner.class=org.apache.kafka.clients.producer.RoundRobinPartitioner'
+# Usage: kp-rr --topic my-topic
+
+# Producer with compression
+alias kp-compress='kafka-console-producer --bootstrap-server $KAFKA_SERVER --producer-property compression.type=gzip'
+# Usage: kp-compress --topic my-topic
+
+# ============================================
+# CONSUMER (File 18: Kafka Console Consumer CLI)
+# ============================================
+
+# Basic consumer (tail mode - only new messages)
+alias kc='kafka-console-consumer --bootstrap-server $KAFKA_SERVER'
+# Usage: kc --topic my-topic
+
+# Consumer from beginning (read all history)
+alias kc-begin='kafka-console-consumer --bootstrap-server $KAFKA_SERVER --from-beginning'
+# Usage: kc-begin --topic my-topic
+
+# Consumer with full details (key, partition, timestamp, value)
+alias kc-detail='kafka-console-consumer --bootstrap-server $KAFKA_SERVER --formatter kafka.tools.DefaultMessageFormatter --property print.timestamp=true --property print.key=true --property print.value=true --property print.partition=true'
+# Usage: kc-detail --topic my-topic --from-beginning
+
+# Consumer with only keys and values
+alias kc-kv='kafka-console-consumer --bootstrap-server $KAFKA_SERVER --formatter kafka.tools.DefaultMessageFormatter --property print.key=true --property print.value=true --property key.separator=" => "'
+# Usage: kc-kv --topic my-topic --from-beginning
+
+# Consumer with partition info only
+alias kc-partition='kafka-console-consumer --bootstrap-server $KAFKA_SERVER --formatter kafka.tools.DefaultMessageFormatter --property print.partition=true --property print.value=true'
+# Usage: kc-partition --topic my-topic --from-beginning
+
+# Consumer with timestamp
+alias kc-time='kafka-console-consumer --bootstrap-server $KAFKA_SERVER --formatter kafka.tools.DefaultMessageFormatter --property print.timestamp=true --property print.value=true'
+# Usage: kc-time --topic my-topic --from-beginning
+
+# Consumer with specific consumer group
+alias kc-group='kafka-console-consumer --bootstrap-server $KAFKA_SERVER --group'
+# Usage: kc-group my-group --topic my-topic
+
+# ============================================
+# CONSUMER GROUPS
+# ============================================
+
+# List all consumer groups
+alias kcg-list='kafka-consumer-groups --bootstrap-server $KAFKA_SERVER --list'
+
+# Describe consumer group
+alias kcg-describe='kafka-consumer-groups --bootstrap-server $KAFKA_SERVER --describe'
+# Usage: kcg-describe --group my-group
+
+# Reset consumer group offsets to beginning
+alias kcg-reset-begin='kafka-consumer-groups --bootstrap-server $KAFKA_SERVER --reset-offsets --to-earliest --execute'
+# Usage: kcg-reset-begin --group my-group --topic my-topic
+
+# Reset consumer group offsets to end
+alias kcg-reset-end='kafka-consumer-groups --bootstrap-server $KAFKA_SERVER --reset-offsets --to-latest --execute'
+# Usage: kcg-reset-end --group my-group --topic my-topic
+
+# Delete consumer group
+alias kcg-delete='kafka-consumer-groups --bootstrap-server $KAFKA_SERVER --delete'
+# Usage: kcg-delete --group my-group
+
+# ============================================
+# COMBINED WORKFLOWS (Quick Tasks)
+# ============================================
+
+# Create topic and immediately describe it
+kt-create-show() {
+    kafka-topics --bootstrap-server $KAFKA_SERVER --create --topic "$1" --partitions "${2:-3}" --replication-factor 1
+    kafka-topics --bootstrap-server $KAFKA_SERVER --describe --topic "$1"
+}
+# Usage: kt-create-show my-topic 5
+
+# Produce and consume test (quick test function)
+kafka-test() {
+    local topic="${1:-test-topic}"
+    echo "Creating topic: $topic"
+    kt-create --topic "$topic" --partitions 3
+    echo "\nProducing test messages..."
+    echo -e "message1\nmessage2\nmessage3" | kp --topic "$topic"
+    echo "\nConsuming messages..."
+    timeout 3 kc-begin --topic "$topic"
+}
+# Usage: kafka-test my-topic
+
+# ============================================
+# SYSTEM & MONITORING
+# ============================================
+
+# Check Kafka/Conduktor status
+alias kafka-status='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "conduktor|redpanda|kafka|NAME"'
+
+# Check Kafka logs
+alias kafka-logs='docker logs -f redpanda-0'
+
+# Restart Kafka cluster
+alias kafka-restart='cd ~/learningProjects/Learning-kafka-codewithDurgesh && docker compose restart'
+
+# Stop Kafka cluster
+alias kafka-stop='cd ~/learningProjects/Learning-kafka-codewithDurgesh && docker compose stop'
+
+# Start Kafka cluster
+alias kafka-start='cd ~/learningProjects/Learning-kafka-codewithDurgesh && docker compose up -d'
+
+# Open Conduktor UI
+alias kafka-ui='open http://localhost:8080'
+
+# ============================================
+# HELP & DOCUMENTATION
+# ============================================
+
+# Show all Kafka aliases
+alias kafka-help='cat ~/learningProjects/Learning-kafka-codewithDurgesh/.kafka-aliases | grep "^alias" | sed "s/alias //" | column -t -s="="'
+
+# Show quick reference
+kafka-ref() {
+    echo "=== Kafka Quick Reference ==="
+    echo "\n📋 Topics:"
+    echo "  kt-list              - List all topics"
+    echo "  kt-create            - Create topic"
+    echo "  kt-describe          - Describe topic"
+    echo "  kt-delete            - Delete topic"
+    echo "\n📤 Producer:"
+    echo "  kp --topic NAME      - Send messages"
+    echo "  kp-key --topic NAME  - Send with keys (key:value)"
+    echo "  kp-safe --topic NAME - Send with acks=all"
+    echo "\n📥 Consumer:"
+    echo "  kc --topic NAME      - Read new messages"
+    echo "  kc-begin --topic NAME- Read from beginning"
+    echo "  kc-detail --topic N  - Read with full details"
+    echo "\n👥 Consumer Groups:"
+    echo "  kcg-list             - List groups"
+    echo "  kcg-describe --group - Describe group"
+    echo "\n🔧 System:"
+    echo "  kafka-status         - Check cluster status"
+    echo "  kafka-ui             - Open Conduktor UI"
+    echo "  kafka-test TOPIC     - Quick test workflow"
+    echo "\nFor full list: kafka-help"
+}
+
+# ============================================
+# ENVIRONMENT INFO
+# ============================================
+
+# Show current Kafka configuration
+kafka-info() {
+    echo "=== Kafka Environment ==="
+    echo "Bootstrap Server: $KAFKA_SERVER"
+    echo "Kafka Version: $(kafka-topics --version 2>&1 | head -1)"
+    echo "Docker Status:"
+    kafka-status
+    echo "\nTopics Count: $(kt-list 2>/dev/null | wc -l | tr -d ' ')"
+    echo "Consumer Groups: $(kcg-list 2>/dev/null | wc -l | tr -d ' ')"
+}
+
+# ============================================
+# INITIALIZATION MESSAGE
+# ============================================
+
+echo "✅ Kafka aliases loaded! Type 'kafka-ref' for quick reference or 'kafka-help' for full list."
